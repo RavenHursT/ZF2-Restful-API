@@ -1,6 +1,8 @@
 <?php
 
-namespace Application\Model;
+namespace Common\Model;
+
+use Zend\Config\Config;
 
 abstract class AbstractRESTModule {
 
@@ -20,17 +22,21 @@ abstract class AbstractRESTModule {
 	}
 
 	public function getAutoLoaderConfig() {
-		return array(
-			//TODO:: Make this find out if module has autoload_classmap.php
-//			'Zend\Loader\ClassMapAutoloader' => array(
-//				$this->getModuleRootPath() . '/autoload_classmap.php',
-//			),
+		$config = array(
 			'Zend\Loader\StandardAutoloader' => array(
 				'namespaces' => array(
 					$this->getModuleNamespace() => $this->getModuleRootPath() . '/src/' . $this->getModuleNamespace()
 				)
 			)
 		);
+
+		if(file_exists($this->getModuleRootPath() . '/autoload_classmap.php')){
+			$config['Zend\Loader\ClassMapAutoloader'] = array(
+				$this->getModuleRootPath() . '/autoload_classmap.php'
+			);
+		}
+
+		return $config;
 	}
 
 	private function _getInvokables(){
@@ -92,21 +98,31 @@ abstract class AbstractRESTModule {
 	}
 
 	public function getConfig() {
-		return array(
-			'controllers' => array(
-				'invokables' => $this->_getInvokables()
-			),
-			'router' => array(
-				'routes' => $this->getRoutes()
-			),
-			'view_manager' => array(
-				'strategies' => array(
-					'ViewJsonStrategy'
+		$config =  new Config(
+			array(
+				'controllers' => array(
+					'invokables' => $this->_getInvokables()
 				),
-				'template_path_stack' => array(
-					'album' => APP_ROOT . 	'/module/Album/config/../view'
+				'router' => array(
+					'routes' => $this->getRoutes()
+				),
+				'view_manager' => array(
+					'strategies' => array(
+						'ViewJsonStrategy'
+					),
+					'template_path_stack' => array(
+						'album' => APP_ROOT . 	'/module/Album/config/../view'
+					)
 				)
 			)
 		);
+
+		if(file_exists($this->getModuleRootPath() . '/config/module.config.ini')){
+			$reader = new \Zend\Config\Reader\Ini();
+			$additionalModuleConfig = new Config($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'));
+			$config = $config->merge($additionalModuleConfig);
+		}
+
+		return $config->toArray();
 	}
 }

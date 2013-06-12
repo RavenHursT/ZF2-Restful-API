@@ -4,15 +4,16 @@ $ZF2_PATH = "/var/www/tersus/lib/ZF2/library";
 putenv("ZF2_PATH={$ZF2_PATH}");
 return array(
 	'modules' => array(
-		'Application'
+		'Common'
 	),
 	'module_listener_options' => array(
 		'config_glob_paths'    => array(
-			'../../../config/autoload/{,*.}{global,local}.php'
+			'../../../config/autoload/{,*.}{global,local}.php',
+			'../../../config/autoload/{,*.}{global,local}.ini'
 		),
 		'module_paths' => array(
 			'module',
-			'vendor'
+//			'vendor'
 		)
 	)
 );

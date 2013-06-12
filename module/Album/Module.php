@@ -9,7 +9,7 @@
 
 namespace Album;
 
-use Application\Model\AbstractRESTModule;
+use Common\Model\AbstractRESTModule;
 
 class Module extends AbstractRESTModule{
 

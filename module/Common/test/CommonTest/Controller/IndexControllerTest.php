@@ -1,10 +1,10 @@
 <?php
 
-namespace ApplicationTest\Controller;
+namespace CommonTest\Controller;
 
-use ApplicationTest\Bootstrap;
+use CommonTest\Bootstrap;
 use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
-use Application\Controller\IndexController;
+use Common\Controller\IndexController;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;

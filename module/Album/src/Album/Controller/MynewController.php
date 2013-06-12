@@ -15,6 +15,7 @@ use Zend\View\Model\JsonModel;
 class MynewController extends AbstractRestfulController{
 	public function getList()
 	{
+		print_r($config = $this->getServiceLocator()->get('Config'));exit;
 		die('MynewController::getList()');
 	}
 
