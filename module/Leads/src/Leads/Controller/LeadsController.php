@@ -1,20 +1,22 @@
 <?php
 /**
- * File: AlbumController.php
+ * File: LeadsController.php
  * User: matthewmarcus
  * Date: 5/10/13
  * Time: 1:45 PM
  */
 
-namespace Album\Controller;
+namespace Leads\Controller;
 
 use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\View\Model\JsonModel;
 
 
-class AlbumController extends AbstractRestfulController{
+class LeadsController extends AbstractRestfulController{
 	public function getList()
 	{
+		// If you want to see your current config (i.e. routes, invokables, etc.), uncomment the following:
+//		print_r($this->getServiceLocator()->get('Config'));exit;
 		die('getList()');
 	}
 

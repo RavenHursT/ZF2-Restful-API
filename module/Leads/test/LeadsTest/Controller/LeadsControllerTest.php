@@ -1,8 +1,8 @@
 <?php
-namespace AlbumRestTest\Controller;
+namespace LeadsRestTest\Controller;
 
-use AlbumTest\Bootstrap;
-use Album\Controller\AlbumController;
+use LeadsTest\Bootstrap;
+use Leads\Controller\LeadsController;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;
@@ -10,7 +10,7 @@ use Zend\Mvc\Router\RouteMatch;
 use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
 use PHPUnit_Framework_TestCase;
 
-class AlbumRestControllerTest extends PHPUnit_Framework_TestCase
+class LeadsRestControllerTest extends PHPUnit_Framework_TestCase
 {
 	protected $controller;
 	protected $request;
@@ -21,7 +21,7 @@ class AlbumRestControllerTest extends PHPUnit_Framework_TestCase
 	protected function setUp()
 	{
 		$serviceManager = Bootstrap::getServiceManager();
-		$this->controller = new AlbumController();
+		$this->controller = new LeadsController();
 		$this->request    = new Request();
 		$this->routeMatch = new RouteMatch(array('controller' => 'index'));
 		$this->event      = new MvcEvent();

@@ -1,18 +1,16 @@
 <?php
 /**
- * File: Album.php
+ * File: Lead.php
  * User: matthewmarcus
  * Date: 5/30/13
  * Time: 5:22 PM
  */
 
-namespace Album\Model;
+namespace Leads\Model;
 
 
-class Album {
+class Lead {
 	private $_id;
-	private $_artist;
-	private $_title;
 
 	public function __get($arg){
 		if(method_exists($this, 'get' . ucfirst($arg))){
@@ -37,7 +35,5 @@ class Album {
 	public function exchangeArray($data)
 	{
 		$this->_id     = (isset($data['id'])) ? $data['id'] : null;
-		$this->_artist = (isset($data['artist'])) ? $data['artist'] : null;
-		$this->_title  = (isset($data['title'])) ? $data['title'] : null;
 	}
 }
