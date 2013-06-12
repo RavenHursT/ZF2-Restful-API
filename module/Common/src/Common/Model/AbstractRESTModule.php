@@ -3,12 +3,15 @@
 namespace Common\Model;
 
 use Zend\Config\Config;
+use Zend\EventManager\Event;
+use Zend\ServiceManager\ServiceManager;
 
 abstract class AbstractRESTModule {
 
 	protected
 		$_controllerFilePaths = NULL,
-		$_routes = NULL;
+		$_routes = NULL,
+		$_event = NULL;
 
 	public function __construct(){
 	}
@@ -124,5 +127,25 @@ abstract class AbstractRESTModule {
 		}
 
 		return $config->toArray();
+	}
+
+	public function getServiceConfig(){
+		return array(
+			'factories' => array(
+				'Log' => function ($sm) {
+					$config = $sm->get('Config');
+					if(isset($config['log_file_dir'])){
+						$logFileDir = $config['log_file_dir'];
+					} else {
+						$logFileDir = '/tmp';
+					}
+					$log = new \Zend\Log\Logger();
+					$writer = new \Zend\Log\Writer\Stream($config['log_file_dir'] . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
+					$log->addWriter($writer);
+
+					return $log;
+				},
+			),
+		);
 	}
 }

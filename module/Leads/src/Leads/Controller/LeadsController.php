@@ -17,6 +17,8 @@ class LeadsController extends AbstractRestfulController{
 	{
 		// If you want to see your current config (i.e. routes, invokables, etc.), uncomment the following:
 //		print_r($this->getServiceLocator()->get('Config'));exit;
+		$log = $this->getServiceLocator()->get('Log');
+		$log->info('Just a test');
 		die('getList()');
 	}
 
