@@ -3,8 +3,15 @@
 namespace Common\Model;
 
 use Zend\Config\Config;
+use Zend\Config\Reader\Ini;
 use Zend\EventManager\Event;
+use Zend\Log\Logger;
+use Zend\Log\Writer\Stream;
+use Zend\ModuleManager\Listener\ServiceListener;
+use Zend\Mvc\ModuleRouteListener;
+use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
+use Common\Services\ErrorHandling as ErrorHandlingService;
 
 abstract class AbstractRESTModule {
 
@@ -13,7 +20,53 @@ abstract class AbstractRESTModule {
 		$_routes = NULL,
 		$_event = NULL;
 
-	public function __construct(){
+	public function onBootstrap(MvcEvent $e){
+//		$eventManager = $e->getApplication()->getEventManager();
+//		$moduleRouteListener = new ModuleRouteListener();
+//		$moduleRouteListener->attach($eventManager);
+//		/**
+//		 * Log any Uncaught Exceptions, including all Exceptions in the stack
+//		 */
+//		$sharedManager = $e->getApplication()->getEventManager()->getSharedManager();
+//		$sm = $e->getApplication()->getServiceManager();
+//		$sharedManager->attach('Zend\Mvc\Application', 'dispatch.error',
+//			function($e) use ($sm) {
+//				die('did we even get here?');
+//				if ($e->getParam('exception')){
+//					$ex = $e->getParam('exception');
+//					do {
+//						$sm->get('Log')->crit(
+//							sprintf(
+//								"%s:%d %s (%d) [%s]\n",
+//								$ex->getFile(),
+//								$ex->getLine(),
+//								$ex->getMessage(),
+//								$ex->getCode(),
+//								get_class($ex)
+//							)
+//						);
+//					}
+//					while($ex = $ex->getPrevious());
+//				}
+//			}
+//		);
+
+
+//		print_r($sharedManager->getListeners('Zend\Mvc\Application', 'dispatch.error'));
+
+		$application = $e->getTarget();
+//		print_r(get_class($application->getEventManager()));exit;
+		$eventManager = $application->getEventManager();
+		$services = $application->getServiceManager();
+		$listener = $eventManager->attach('dispatch.error', function ($event) use ($services) {
+			$exception = $event->getResult()->exception;
+			if (!$exception) {
+				return;
+			}
+			$service = $services->get('Application\Service\ErrorHandling');
+			$service->logException($exception);
+		});
+		print_r($listener);
 	}
 
 	public abstract function getModuleNamespace();
@@ -21,6 +74,7 @@ abstract class AbstractRESTModule {
 	public abstract function getModuleRootPath();
 
 	public function init(){
+//		$newSL = new ServiceListener('hi');
 		$this->_controllerFilePaths = $this->getControllerFilePaths();
 	}
 
@@ -121,7 +175,7 @@ abstract class AbstractRESTModule {
 		);
 
 		if(file_exists($this->getModuleRootPath() . '/config/module.config.ini')){
-			$reader = new \Zend\Config\Reader\Ini();
+			$reader = new Ini();
 			$additionalModuleConfig = new Config($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'));
 			$config = $config->merge($additionalModuleConfig);
 		}
@@ -132,6 +186,11 @@ abstract class AbstractRESTModule {
 	public function getServiceConfig(){
 		return array(
 			'factories' => array(
+				'Application\Service\ErrorHandling' =>  function($sm) {
+					$logger = $sm->get('Log');
+					$service = new ErrorHandlingService($logger);
+					return $service;
+				},
 				'Log' => function ($sm) {
 					$config = $sm->get('Config');
 					if(isset($config['log_file_dir'])){
@@ -139,8 +198,8 @@ abstract class AbstractRESTModule {
 					} else {
 						$logFileDir = '/tmp';
 					}
-					$log = new \Zend\Log\Logger();
-					$writer = new \Zend\Log\Writer\Stream($config['log_file_dir'] . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
+					$log = new Logger();
+					$writer = new Stream($config['log_file_dir'] . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
 					$log->addWriter($writer);
 
 					return $log;
