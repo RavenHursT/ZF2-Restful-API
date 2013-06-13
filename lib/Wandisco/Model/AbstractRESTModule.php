@@ -1,7 +1,8 @@
 <?php
 
-namespace Common\Model;
+namespace Wandisco\Model;
 
+use Wandisco\Service\ErrorHandlingService;
 use Zend\Config\Config;
 use Zend\Config\Reader\Ini;
 use Zend\EventManager\Event;
@@ -11,70 +12,37 @@ use Zend\ModuleManager\Listener\ServiceListener;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
-use Common\Services\ErrorHandling as ErrorHandlingService;
 
 abstract class AbstractRESTModule {
 
 	protected
 		$_controllerFilePaths = NULL,
 		$_routes = NULL,
-		$_event = NULL;
+		$_event = NULL,
+		$_log = NULL;
 
-	public function onBootstrap(MvcEvent $e){
-//		$eventManager = $e->getApplication()->getEventManager();
-//		$moduleRouteListener = new ModuleRouteListener();
-//		$moduleRouteListener->attach($eventManager);
-//		/**
-//		 * Log any Uncaught Exceptions, including all Exceptions in the stack
-//		 */
-//		$sharedManager = $e->getApplication()->getEventManager()->getSharedManager();
-//		$sm = $e->getApplication()->getServiceManager();
-//		$sharedManager->attach('Zend\Mvc\Application', 'dispatch.error',
-//			function($e) use ($sm) {
-//				die('did we even get here?');
-//				if ($e->getParam('exception')){
-//					$ex = $e->getParam('exception');
-//					do {
-//						$sm->get('Log')->crit(
-//							sprintf(
-//								"%s:%d %s (%d) [%s]\n",
-//								$ex->getFile(),
-//								$ex->getLine(),
-//								$ex->getMessage(),
-//								$ex->getCode(),
-//								get_class($ex)
-//							)
-//						);
-//					}
-//					while($ex = $ex->getPrevious());
-//				}
-//			}
-//		);
-
-
-//		print_r($sharedManager->getListeners('Zend\Mvc\Application', 'dispatch.error'));
-
-		$application = $e->getTarget();
-//		print_r(get_class($application->getEventManager()));exit;
-		$eventManager = $application->getEventManager();
-		$services = $application->getServiceManager();
-		$listener = $eventManager->attach('dispatch.error', function ($event) use ($services) {
-			$exception = $event->getResult()->exception;
-			if (!$exception) {
-				return;
+	public function onBootstrap(Event $e){
+		$this->_event = $e;
+		$sharedManager = $e->getApplication()->getEventManager()->getSharedManager();
+		$sm = $e->getApplication()->getServiceManager();
+		$sharedManager->attach('Zend\Mvc\Application', 'dispatch.error', function($e) use ($sm){
+			echo "There was an error\n\r";
+			if ($ex = $e->getParam('exception')) {
+				$service = $sm->get('Wandisco\Service\ErrorHandling');
+				$service->logException($ex);
 			}
-			$service = $services->get('Application\Service\ErrorHandling');
-			$service->logException($exception);
 		});
-		print_r($listener);
 	}
 
-	public abstract function getModuleNamespace();
+	public function getModuleNamespace(){
+		$classBits = explode('\\', get_class($this));
+		array_pop($classBits);
+		return implode('\\', $classBits);
+	}
 
 	public abstract function getModuleRootPath();
 
 	public function init(){
-//		$newSL = new ServiceListener('hi');
 		$this->_controllerFilePaths = $this->getControllerFilePaths();
 	}
 
@@ -168,7 +136,7 @@ abstract class AbstractRESTModule {
 						'ViewJsonStrategy'
 					),
 					'template_path_stack' => array(
-						'album' => APP_ROOT . 	'/module/Album/config/../view'
+						strtolower($this->getModuleNamespace()) => $this->getModuleRootPath() . '/view',
 					)
 				)
 			)
@@ -180,13 +148,13 @@ abstract class AbstractRESTModule {
 			$config = $config->merge($additionalModuleConfig);
 		}
 
-		return $config->toArray();
+		return $config;
 	}
 
 	public function getServiceConfig(){
 		return array(
 			'factories' => array(
-				'Application\Service\ErrorHandling' =>  function($sm) {
+				'Wandisco\Service\ErrorHandling' =>  function($sm) {
 					$logger = $sm->get('Log');
 					$service = new ErrorHandlingService($logger);
 					return $service;
@@ -199,8 +167,10 @@ abstract class AbstractRESTModule {
 						$logFileDir = '/tmp';
 					}
 					$log = new Logger();
-					$writer = new Stream($config['log_file_dir'] . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
+					$writer = new Stream($logFileDir . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
 					$log->addWriter($writer);
+//					Logger::registerErrorHandler($log);
+//					Logger::registerExceptionHandler($log);
 
 					return $log;
 				},

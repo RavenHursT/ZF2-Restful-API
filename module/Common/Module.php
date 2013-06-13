@@ -13,12 +13,16 @@ use Zend\Mvc\MvcEvent;
 
 class Module
 {
+	protected
+		$_log = NULL;
+
     public function onBootstrap(MvcEvent $e)
     {
-        $e->getApplication()->getServiceManager()->get('translator');
+		$e->getApplication()->getServiceManager()->get('translator');
         $eventManager        = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
+
     }
 
     public function getConfig()

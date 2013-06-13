@@ -9,13 +9,9 @@
 
 namespace Leads;
 
-use Common\Model\AbstractRESTModule;
+use Wandisco\Model\AbstractRESTModule;
 
 class Module extends AbstractRESTModule{
-
-	public function getModuleNamespace(){
-		return __NAMESPACE__;
-	}
 
 	public function getModuleRootPath(){
 		return __DIR__;

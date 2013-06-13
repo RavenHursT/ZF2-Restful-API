@@ -8,16 +8,19 @@
 
 namespace Leads\Controller;
 
+use Zend\ModuleManager\Listener\ServiceListener;
 use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\ServiceManager\ServiceManager;
 use Zend\View\Model\JsonModel;
 
 
 class LeadsController extends AbstractRestfulController{
 	public function getList()
 	{
+		$this->getServiceLocator()->get('Log')->info('LeadsController::getList()');
 		// If you want to see your current config (i.e. routes, invokables, etc.), uncomment the following:
 //		print_r($this->getServiceLocator()->get('Config'));exit;
-		die('getList()');
+//		die('getList()');
 	}
 
 	public function get($id)

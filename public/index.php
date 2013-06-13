@@ -10,6 +10,7 @@ error_reporting(E_ALL);
 chdir(dirname(__DIR__));
 define('APP_ROOT', dirname(__DIR__));
 define('APP_NAME', 'Tersus');
+define('LIB_DIR', APP_ROOT . '/lib');
 
 // Setup autoloading
 require 'init_autoloader.php';
