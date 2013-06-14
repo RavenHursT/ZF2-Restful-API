@@ -8,7 +8,6 @@
 
 namespace Leads\Controller;
 
-use Zend\ModuleManager\Listener\ServiceListener;
 use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\ServiceManager\ServiceManager;
 use Zend\View\Model\JsonModel;
@@ -21,25 +20,32 @@ class LeadsController extends AbstractRestfulController{
 		// If you want to see your current config (i.e. routes, invokables, etc.), uncomment the following:
 //		print_r($this->getServiceLocator()->get('Config'));exit;
 //		die('getList()');
+		return new JsonModel(array(
+			'data' => array(
+				'someString' => 'Foo',
+				'someInt' => 10,
+				'someBool' => false
+			)
+		));
 	}
 
 	public function get($id)
 	{
-		die('getId($id)');
+//		die('getId($id)');
 	}
 
 	public function create($data)
 	{
-		die('create($data)');
+//		die('create($data)');
 	}
 
 	public function update($id, $data)
 	{
-		die('update($id, $data)');
+//		die('update($id, $data)');
 	}
 
 	public function delete($id)
 	{
-		die('delete($id)');
+//		die('delete($id)');
 	}
 }

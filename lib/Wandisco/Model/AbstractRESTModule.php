@@ -2,10 +2,12 @@
 
 namespace Wandisco\Model;
 
+use Wandisco\Model\Log\WandiscoLogger;
 use Wandisco\Service\ErrorHandlingService;
 use Zend\Config\Config;
 use Zend\Config\Reader\Ini;
 use Zend\EventManager\Event;
+use Zend\Log\Formatter\Simple;
 use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\ModuleManager\Listener\ServiceListener;
@@ -135,9 +137,9 @@ abstract class AbstractRESTModule {
 					'strategies' => array(
 						'ViewJsonStrategy'
 					),
-					'template_path_stack' => array(
-						strtolower($this->getModuleNamespace()) => $this->getModuleRootPath() . '/view',
-					)
+//					'template_path_stack' => array(
+//						strtolower($this->getModuleNamespace()) => $this->getModuleRootPath() . '/view',
+//					)
 				)
 			)
 		);
@@ -166,8 +168,9 @@ abstract class AbstractRESTModule {
 					} else {
 						$logFileDir = '/tmp';
 					}
-					$log = new Logger();
+					$log = new WandiscoLogger();
 					$writer = new Stream($logFileDir . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
+					$writer->setFormatter(new Simple('%timestamp% %priorityName% (%priority%) [%class%::%function%]: %message% %extra%', 'c'));
 					$log->addWriter($writer);
 //					Logger::registerErrorHandler($log);
 //					Logger::registerExceptionHandler($log);
