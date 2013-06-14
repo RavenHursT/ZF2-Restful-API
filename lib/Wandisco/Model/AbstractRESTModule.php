@@ -170,7 +170,7 @@ abstract class AbstractRESTModule {
 					}
 					$log = new WandiscoLogger();
 					$writer = new Stream($logFileDir . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
-					$writer->setFormatter(new Simple('%timestamp% %priorityName% (%priority%) [%class%::%function%]: %message% %extra%', 'c'));
+					$writer->setFormatter(new Simple('%timestamp% %priorityName% (%priority%) [f=%requestFingerprint%] [%class%::%function%]: %message% %extra%', 'c'));
 					$log->addWriter($writer);
 //					Logger::registerErrorHandler($log);
 //					Logger::registerExceptionHandler($log);

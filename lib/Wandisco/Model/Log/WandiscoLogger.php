@@ -80,6 +80,10 @@ class WandiscoLogger extends Logger
 			$event = array_merge($event, $callerTrace);
 		}
 
+		if(isset($_SERVER['UNIQUE_ID'])){
+			$event['requestFingerprint'] = $_SERVER['UNIQUE_ID'];
+		}
+
         foreach ($this->processors->toArray() as $processor) {
             $event = $processor->process($event);
         }
