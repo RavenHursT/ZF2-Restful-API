@@ -30,18 +30,27 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 //		print_r($e->getRequest()->__toString()); exit;
 		$this->_event = $e;
 
-		//TODO: figure out how the heck to get this working --mmarcus
 		$eventManager = $e->getApplication()->getEventManager();
-//		$sm = $e->getApplication()->getServiceManager();
+		$sharedManager = $eventManager->getSharedManager();
+
 		$this->setServiceManager($e->getApplication()->getServiceManager());
 		$this->setLog($this->getServiceManager()->get('Log'));
 		$this->logRequest($e->getRequest());
-		$host = $this;
+
+
+		$host = $this; // Needed for event listeners.
+
+		//TODO: figure out how the heck to get this working --mmarcus
 		$eventManager->attach('dispatch.error', function($e) use ($host){
 			if ($ex = $e->getParam('exception')) {
 				$service = $host->getServiceManager()->get('Wandisco\Service\ErrorHandling');
 				$service->logException($ex);
 			}
+		});
+
+		//Listener to log response
+		$sharedManager->attach('Zend\Mvc\Application', 'finish', function($e) use ($host){
+			$host->logResponse($e->getResponse());
 		});
 	}
 
