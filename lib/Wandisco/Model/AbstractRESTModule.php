@@ -7,6 +7,8 @@ use Wandisco\Service\ErrorHandlingService;
 use Zend\Config\Config;
 use Zend\Config\Reader\Ini;
 use Zend\EventManager\Event;
+use Zend\Http\Request;
+use Zend\Http\Response;
 use Zend\Log\Formatter\Simple;
 use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
@@ -15,25 +17,42 @@ use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
 
-abstract class AbstractRESTModule {
+abstract class AbstractRESTModule extends AbstractBaseModel {
 
 	protected
 		$_controllerFilePaths = NULL,
 		$_routes = NULL,
 		$_event = NULL,
-		$_log = NULL;
+		$_log = NULL,
+		$_serviceManager = NULL;
 
 	public function onBootstrap(Event $e){
+//		print_r($e->getRequest()->__toString()); exit;
 		$this->_event = $e;
-		$sharedManager = $e->getApplication()->getEventManager()->getSharedManager();
-		$sm = $e->getApplication()->getServiceManager();
-		$sharedManager->attach('Zend\Mvc\Application', 'dispatch.error', function($e) use ($sm){
-			echo "There was an error\n\r";
+
+		//TODO: figure out how the heck to get this working --mmarcus
+		$eventManager = $e->getApplication()->getEventManager();
+//		$sm = $e->getApplication()->getServiceManager();
+		$this->setServiceManager($e->getApplication()->getServiceManager());
+		$this->setLog($this->getServiceManager()->get('Log'));
+		$this->logRequest($e->getRequest());
+		$host = $this;
+		$eventManager->attach('dispatch.error', function($e) use ($host){
 			if ($ex = $e->getParam('exception')) {
-				$service = $sm->get('Wandisco\Service\ErrorHandling');
+				$service = $host->getServiceManager()->get('Wandisco\Service\ErrorHandling');
 				$service->logException($ex);
 			}
 		});
+	}
+
+	public function logRequest(Request $request){
+		$this->getLog()->info('Incoming request => ' . $request->__toString());
+		return $this;
+	}
+
+	public function logResponse(Response $response){
+		$this->getLog()->info("Outgoing response => " . $response->__toString());
+		return $this;
 	}
 
 	public function getModuleNamespace(){
@@ -46,6 +65,7 @@ abstract class AbstractRESTModule {
 
 	public function init(){
 		$this->_controllerFilePaths = $this->getControllerFilePaths();
+//		print_r($this->_controllerFilePaths);exit;
 	}
 
 	public function getAutoLoaderConfig() {

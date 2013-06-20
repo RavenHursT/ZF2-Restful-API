@@ -13,6 +13,7 @@ class Lead {
 	private $_id;
 
 	public function __get($arg){
+		//TODO: this is nonsense, use __call for methods --mmarcus
 		if(method_exists($this, 'get' . ucfirst($arg))){
 			$methodName = 'get' . ucfirst($arg);
 			return $this->$methodName();
