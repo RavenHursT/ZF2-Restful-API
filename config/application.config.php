@@ -2,7 +2,8 @@
 return array(
     // This should be an array of module namespaces used in the application.
 	'modules' => array(
-		'Common',
+//		'Common',
+		'MwGearman',
 		'Leads',
     ),
 
@@ -63,4 +64,24 @@ return array(
    // Initial configuration with which to seed the ServiceManager.
    // Should be compatible with Zend\ServiceManager\Config.
    // 'service_manager' => array(),
+
+	'di' => array(
+		'instance' => array(
+			'mwGearman\Client\Pecl' => array(
+				'parameters' => array(
+					'servers' => array(
+						array('localhost'),
+					),
+				),
+			),
+			'mwGearman\Worker\Pecl' => array(
+				'parameters' => array(
+					'servers' => array(
+						array('localhost'),
+					),
+				),
+			),
+		),
+	),
+
 );

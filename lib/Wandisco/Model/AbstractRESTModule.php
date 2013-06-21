@@ -175,6 +175,7 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 
 		if(file_exists($this->getModuleRootPath() . '/config/module.config.ini')){
 			$reader = new Ini();
+//			echo print_r($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'), TRUE);exit;
 			$additionalModuleConfig = new Config($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'));
 			$config = $config->merge($additionalModuleConfig);
 		}
