@@ -13,9 +13,11 @@ use Zend\Log\Formatter\Simple;
 use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\ModuleManager\Listener\ServiceListener;
+use Zend\Mvc\Controller\ControllerManager;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
+use Zend\View\Model\JsonModel;
 
 abstract class AbstractRESTModule extends AbstractBaseModel {
 
@@ -38,19 +40,34 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 		$this->logRequest($e->getRequest());
 
 
-		$host = $this; // Needed for event listeners.
+		$currentModule = $this; // Needed for event listeners.
 
-		//TODO: figure out how the heck to get this working --mmarcus
-		$eventManager->attach('dispatch.error', function($e) use ($host){
-			if ($ex = $e->getParam('exception')) {
-				$service = $host->getServiceManager()->get('Wandisco\Service\ErrorHandling');
-				$service->logException($ex);
-			}
+		$this->_event
+			->getApplication()
+			->getEventManager()
+			->attach(MvcEvent::EVENT_DISPATCH_ERROR, function(MvcEvent $e){
+				if ($e->isError()) {
+					$e->getApplication()
+						->getServiceManager()
+						->get('Wandisco\Service\ErrorHandling')
+						->logEventError($e);
+					$jsonModel = new JsonModel(array(
+						'success' => FALSE,
+						'statusCode' => $e->getResponse()->getStatusCode(),
+						'errorMessage' => $e->getError()
+					));
+					$e->setResult($jsonModel);
+//					$e->stopPropagation();
+					return $jsonModel;
+				} else {
+					//don't do anything, just let Zend handle it.
+					return;
+				}
 		});
 
 		//Listener to log response
-		$sharedManager->attach('Zend\Mvc\Application', 'finish', function($e) use ($host){
-			$host->logResponse($e->getResponse());
+		$sharedManager->attach('Zend\Mvc\Application', 'finish', function($e) use ($currentModule){
+			$currentModule->logResponse($e->getResponse());
 		});
 	}
 
@@ -104,12 +121,21 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 		return $invokables;
 	}
 
+	/**
+	 * TODO: This needs to be cleaned up.  Seperate out controller names from file paths.  Doesn't make much sense as-is --Mmarcus
+	 * @return Array of controller names.
+	 * @throws \ErrorException
+	 */
 	public function getControllerFilePaths(){
 		if($this->_controllerFilePaths){
 			return $this->_controllerFilePaths;
 		}
 		$moduleSrcPath = APP_ROOT . '/module/' . $this->getModuleNamespace() . '/src/';
-		return str_replace('/', '\\', str_replace(array($moduleSrcPath, '.php'), '', glob($moduleSrcPath . $this->getModuleNamespace() . '/Controller/*')));
+		$filePaths = glob($moduleSrcPath . $this->getModuleNamespace() . '/Controller/*');
+		if(!$filePaths || !count($filePaths)){
+			throw new \ErrorException("No controller files found for module.  Cannot build module routes.");
+		}
+		return str_replace('/', '\\', str_replace(array($moduleSrcPath, '.php'), '', $filePaths));
 	}
 
 	public function getRoutes(){
@@ -117,28 +143,41 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 			return $this->_routes;
 		}
 		foreach($this->_controllerFilePaths as $filePath){
-			if( ($controllerName = $this->_extractControllerNameFromFilePath($filePath) ) != strtolower($this->getModuleNamespace())){
-				$routeStr = '/' . strtolower($this->getModuleNamespace()) . '/' . $controllerName . '[/:id][/]';
-				$defaultController = ucfirst($this->getModuleNamespace()) . '/Controller/' . ucfirst($controllerName);
-			} else {
-				$routeStr = '/' .  strtolower($this->getModuleNamespace()) . '[/:id][/]';
-				$defaultController = ucfirst($this->getModuleNamespace()) . '/Controller/' . ucfirst($this->getModuleNamespace());
-			}
-			$this->_routes[$controllerName] = array(
-				'type' => 'Zend\Mvc\Router\Http\Segment',
-				'options' => array(
-					'route' => $routeStr,
-					'constraints' => array(
-						'id' => '[0-9]+'
-					),
-					'defaults' => array(
-						'controller' => $defaultController
-					)
-				)
-			);
+			$defaultController = $this->getDefaultController($filePath);
+			$this->_routes[$this->_extractControllerNameFromFilePath($filePath)] = $this->getControllerRoute($this->_extractControllerNameFromFilePath($filePath));
 		}
 //		print_r($this->_routes);exit;
 		return $this->_routes;
+	}
+
+	protected function getControllerRoute($controllerName, $type = 'Zend\Mvc\Router\Http\Segment'){
+		return array(
+			'type' => $type,
+			'options' => array(
+				'route' => $this->_getRouteString($controllerName),
+				'constraints' => array(
+					'id' => '[0-9]+'
+				),
+				'defaults' => array(
+					'controller' => $this->getDefaultController()
+				)
+			)
+		);
+	}
+
+	protected function _getRouteString($controllerName = NULL){
+		return (strtolower($controllerName) == 'index') ?
+			'/' .  strtolower($this->getModuleNamespace()) . '[/:id][/]' :
+			'/' . strtolower($this->getModuleNamespace()) . '/' . $controllerName . '[/:id][/]';
+	}
+
+	public function getDefaultController(){
+		if(array_search($this->getModuleNamespace() . '\\Controller\\IndexController', $this->getControllerFilePaths())){
+			return ucfirst($this->getModuleNamespace()) . '\Controller\Index';
+		} else {
+			$firstController = $this->_extractControllerNameFromFilePath($this->_controllerFilePaths[0]);
+			return ucfirst($this->getModuleNamespace()) . '\Controller\\' . ucfirst($firstController);
+		}
 	}
 	
 	private function _extractControllerNameFromFilePath($filePath){
@@ -154,6 +193,7 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 	}
 
 	public function getConfig() {
+//		print_r($this->getRoutes());
 		$config =  new Config(
 			array(
 				'controllers' => array(
@@ -163,12 +203,15 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 					'routes' => $this->getRoutes()
 				),
 				'view_manager' => array(
+					'display_not_found_reason' => true,
+					'display_exceptions'       => true,
+					'doctype'                  => 'application/json',
 					'strategies' => array(
 						'ViewJsonStrategy'
 					),
-//					'template_path_stack' => array(
-//						strtolower($this->getModuleNamespace()) => $this->getModuleRootPath() . '/view',
-//					)
+					'template_path_stack' => array(
+						strtolower($this->getModuleNamespace()) => $this->getModuleRootPath() . '/view',
+					)
 				)
 			)
 		);
@@ -179,7 +222,6 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 			$additionalModuleConfig = new Config($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'));
 			$config = $config->merge($additionalModuleConfig);
 		}
-
 		return $config;
 	}
 

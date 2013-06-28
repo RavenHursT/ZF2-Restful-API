@@ -9,17 +9,27 @@
 namespace Wandisco\Service;
 
 
+use Zend\Mvc\MvcEvent;
+
 class ErrorHandlingService
 {
 	protected $logger;
 
-	function __construct($logger)
+	public function __construct($logger)
 	{
 		$this->logger = $logger;
 	}
 
-	function logError(\Exception $e)
+	public function logEventError(MvcEvent $e)
 	{
+		$this->logger->err('A ZF2 MVC error event occured => ' . $e->getError());
+	}
+
+	public function logGenericError($errorString){
+
+	}
+
+	public function logException(\Exception $e){
 		$trace = $e->getTraceAsString();
 		$i = 1;
 		do {
@@ -29,7 +39,7 @@ class ErrorHandlingService
 		$log = "Exception:\n" . implode("\n", $messages);
 		$log .= "\nTrace:\n" . $trace;
 
-		echo $log;
+//		echo $log; exit;
 		$this->logger->err($log);
 	}
 }

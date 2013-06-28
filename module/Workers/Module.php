@@ -7,14 +7,14 @@
  * To change this template use File | Settings | File Templates.
  */
 
-namespace Leads;
+namespace Workers;
 
 use Wandisco\Model\AbstractRESTModule;
 use Zend\EventManager\Event;
 
 class Module extends AbstractRESTModule{
 	protected
-		$_gearmanClient = NULL;
+		$_gearmanWorker = NULL;
 
 	public function getModuleRootPath(){
 		return __DIR__;
@@ -22,6 +22,6 @@ class Module extends AbstractRESTModule{
 
 	public function onBootstrap(Event $e){
 		parent::onBootstrap($e);
-		$this->setGearmanClient($this->getServiceManager()->get('mwGearman\Client\Pecl'));
+		$this->setWorker($this->getServiceManager()->get('mwGearman\Worker\Pecl'));
 	}
 }

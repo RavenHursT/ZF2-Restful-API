@@ -13,7 +13,7 @@ use Zend\ServiceManager\ServiceManager;
 use Zend\View\Model\JsonModel;
 
 
-class LeadsController extends AbstractRestfulController{
+class IndexController extends AbstractRestfulController{
 	public function getList()
 	{
 		$this->getServiceLocator()->get('Log')->info('LeadsController::getList()');
