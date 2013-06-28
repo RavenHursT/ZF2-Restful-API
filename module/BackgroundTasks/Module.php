@@ -7,14 +7,14 @@
  * To change this template use File | Settings | File Templates.
  */
 
-namespace Workers;
+namespace BackgroundTasks;
 
 use Wandisco\Model\AbstractRESTModule;
 use Zend\EventManager\Event;
 
 class Module extends AbstractRESTModule{
 	protected
-		$_gearmanWorker = NULL;
+		$_worker = NULL;
 
 	public function getModuleRootPath(){
 		return __DIR__;
