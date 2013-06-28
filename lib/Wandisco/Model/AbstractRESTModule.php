@@ -17,7 +17,6 @@ use Zend\Mvc\Controller\ControllerManager;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
-use Zend\View\Model\JsonModel;
 
 abstract class AbstractRESTModule extends AbstractBaseModel {
 
@@ -47,18 +46,15 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 			->getEventManager()
 			->attach(MvcEvent::EVENT_DISPATCH_ERROR, function(MvcEvent $e){
 				if ($e->isError()) {
-					$e->getApplication()
+
+					$jsonModel = $e->getApplication()
 						->getServiceManager()
 						->get('Wandisco\Service\ErrorHandling')
-						->logEventError($e);
-					$jsonModel = new JsonModel(array(
-						'success' => FALSE,
-						'statusCode' => $e->getResponse()->getStatusCode(),
-						'errorMessage' => $e->getError()
-					));
-					$e->setResult($jsonModel);
-//					$e->stopPropagation();
+						->logEventError($e)
+						->setJsonResult($e);
+
 					return $jsonModel;
+
 				} else {
 					//don't do anything, just let Zend handle it.
 					return;

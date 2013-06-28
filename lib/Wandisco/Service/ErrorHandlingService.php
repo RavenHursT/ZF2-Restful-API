@@ -10,6 +10,7 @@ namespace Wandisco\Service;
 
 
 use Zend\Mvc\MvcEvent;
+use Zend\View\Model\JsonModel;
 
 class ErrorHandlingService
 {
@@ -23,6 +24,22 @@ class ErrorHandlingService
 	public function logEventError(MvcEvent $e)
 	{
 		$this->logger->err('A ZF2 MVC error event occured => ' . $e->getError());
+		return $this;
+	}
+
+	/**
+	 * This is how the MVC view strategy knows to just render JSON and not go looking for templates.
+	 * @param MvcEvent $e
+	 * @return JsonModel
+	 */
+	public function setJsonResult(MvcEvent $e){
+		$jsonModel = new JsonModel(array(
+			'success' => FALSE,
+			'statusCode' => $e->getResponse()->getStatusCode(),
+			'errorMessage' => $e->getError()
+		));
+		$e->setResult($jsonModel);
+		return $jsonModel;
 	}
 
 	public function logGenericError($errorString){
