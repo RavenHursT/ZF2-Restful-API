@@ -1,18 +1,12 @@
 <?php
-/**
- * File: AbstractBaseModel.php
- * User: matthewmarcus
- * Date: 6/19/13
- * Time: 1:31 PM
- */
 
-namespace Wandisco\Model;
+namespace Abstracts\Model;
 
 use Zend\Stdlib\Exception\BadMethodCallException;
 
 abstract class AbstractBaseModel {
 	public function __call($called, $args){
-		if(strpos($called, 'get') == 0 || strpos($called, 'set') == 0){
+		if(strpos($called, 'get') === 0 || strpos($called, 'set') === 0){
 			$context = substr($called, 0, 3);
 			$propName = lcfirst(str_replace($context, NULL, $called));
 			if(property_exists($this, $propName) || property_exists($this, '_' . $propName)){
@@ -30,6 +24,8 @@ abstract class AbstractBaseModel {
 				return $this;
 			}
 		}
-		throw new BadMethodCallException('Call to non-existent method ' . get_class($this) . '::' . $called);
+		if($called != 'onBootstrap'){
+			throw new BadMethodCallException('Call to non-existent method ' . get_class($this) . '::' . $called);
+		}
 	}
 }

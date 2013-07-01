@@ -1,69 +1,20 @@
 <?php
 
-namespace Wandisco\Model;
+namespace Abstracts\Model;
 
-use Wandisco\Service\ErrorHandlingService;
 use Zend\Config\Config;
 use Zend\Config\Reader\Ini;
-use Zend\EventManager\Event;
 use Zend\Http\Request;
 use Zend\Http\Response;
-use Zend\Log\Formatter\Simple;
 use Zend\Log\Logger;
-use Zend\Log\Writer\Stream;
-use Zend\ModuleManager\Listener\ServiceListener;
-use Zend\Mvc\Controller\ControllerManager;
 use Zend\Mvc\ModuleRouteListener;
-use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceManager;
 
 abstract class AbstractRESTModule extends AbstractBaseModel {
 
 	protected
 		$_controllerFilePaths = NULL,
-		$_routes = NULL,
-		$_event = NULL,
-		$_log = NULL,
-		$_serviceManager = NULL;
-
-	public function onBootstrap(Event $e){
-//		print_r($e->getRequest()->__toString()); exit;
-//		$this->_event = $e;
-//
-//
-//		$sharedManager = $eventManager->getSharedManager();
-//
-//		$this->setServiceManager($e->getApplication()->getServiceManager());
-//		$this->logRequest($e->getRequest());
-//
-//
-//		$currentModule = $this; // Needed for event listeners.
-//
-//		$this->_event
-//			->getApplication()
-//			->getEventManager()
-//			->attach(MvcEvent::EVENT_DISPATCH_ERROR, function(MvcEvent $e){
-//				if ($e->isError()) {
-//
-//					$jsonModel = $e->getApplication()
-//						->getServiceManager()
-//						->get('Wandisco\Service\ErrorHandling')
-//						->logEventError($e)
-//						->setJsonResult($e);
-//
-//					return $jsonModel;
-//
-//				} else {
-//					//don't do anything, just let Zend handle it.
-//					return;
-//				}
-//		});
-//
-//		//Listener to log response
-//		$eventManager->attach(MvcEvent::EVENT_FINISH, function($e) use ($currentModule){
-//			$currentModule->logResponse($e->getResponse());
-//		});
-	}
+		$_routes = NULL;
 
 	public function getModuleNamespace(){
 		$classBits = explode('\\', get_class($this));

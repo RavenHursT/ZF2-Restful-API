@@ -37,7 +37,7 @@ class WorkersController extends AbstractRestfulController{
 	public function create($data)
 	{
 		if(!isset($data['type']) || empty($data['type'])){
-			throw new \Exception('Could not dispatch new worker, type could not be found, or not given.');
+			throw new \Exception('Could not dispatch new worker. Type could not be found, or not given.');
 		} else {
 			return new JsonModel($data);
 		}

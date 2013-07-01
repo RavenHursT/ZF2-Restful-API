@@ -9,7 +9,7 @@
 
 namespace Leads;
 
-use Wandisco\Model\AbstractRESTModule;
+use Abstracts\Model\AbstractRESTModule;
 use Zend\EventManager\Event;
 
 class Module extends AbstractRESTModule{
