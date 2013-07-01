@@ -13,15 +13,8 @@ use Wandisco\Model\AbstractRESTModule;
 use Zend\EventManager\Event;
 
 class Module extends AbstractRESTModule{
-	protected
-		$_worker = NULL;
 
 	public function getModuleRootPath(){
 		return __DIR__;
-	}
-
-	public function onBootstrap(Event $e){
-		parent::onBootstrap($e);
-		$this->setWorker($this->getServiceManager()->get('mwGearman\Worker\Pecl'));
 	}
 }

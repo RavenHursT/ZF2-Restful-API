@@ -33,11 +33,25 @@ class ErrorHandlingService
 	 * @return JsonModel
 	 */
 	public function setJsonResult(MvcEvent $e){
-		$jsonModel = new JsonModel(array(
+		$ret = array(
 			'success' => FALSE,
 			'statusCode' => $e->getResponse()->getStatusCode(),
-			'errorMessage' => $e->getError()
-		));
+			'errorType' => $e->getError(),
+		);
+		$ex = $e->getResult()->exception;
+		if($ex instanceof \Exception){
+			$this->logException($ex);
+			$ret['exceptionTrace'] = array();
+			do{
+				$ret['exceptionTrace'][] = array(
+					'message' => $ex->getMessage(),
+					'code' => $ex->getCode(),
+					'file' => $ex->getFile(),
+					'line' => $ex->getLine(),
+				);
+			} while($ex = $ex->getPrevious() instanceof \Exception);
+		}
+		$jsonModel = new JsonModel($ret);
 		$e->setResult($jsonModel);
 		return $jsonModel;
 	}

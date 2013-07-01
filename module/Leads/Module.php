@@ -22,6 +22,9 @@ class Module extends AbstractRESTModule{
 
 	public function onBootstrap(Event $e){
 		parent::onBootstrap($e);
-		$this->setGearmanClient($this->getServiceManager()->get('mwGearman\Client\Pecl'));
+		$this->setGearmanClient($e->getApplication()
+			->getServiceManager()
+			->get('mwGearman\Client\Pecl')
+		);
 	}
 }

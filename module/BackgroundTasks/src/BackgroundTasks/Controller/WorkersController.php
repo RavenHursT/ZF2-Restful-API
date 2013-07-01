@@ -6,14 +6,14 @@
  * Time: 1:45 PM
  */
 
-namespace Workers\Controller;
+namespace BackgroundTasks\Controller;
 
 use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\ServiceManager\ServiceManager;
 use Zend\View\Model\JsonModel;
 
 
-class LeadsController extends AbstractRestfulController{
+class WorkersController extends AbstractRestfulController{
 	public function getList()
 	{
 		$this->getServiceLocator()->get('Log')->info('LeadsController::getList()');
@@ -36,7 +36,11 @@ class LeadsController extends AbstractRestfulController{
 
 	public function create($data)
 	{
-		die('YES!');
+		if(!isset($data['type']) || empty($data['type'])){
+			throw new \Exception('Could not dispatch new worker, type could not be found, or not given.');
+		} else {
+			return new JsonModel($data);
+		}
 	}
 
 	public function update($id, $data)

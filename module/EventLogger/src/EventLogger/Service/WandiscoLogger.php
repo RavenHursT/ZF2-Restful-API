@@ -7,7 +7,7 @@
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace Wandisco\Model\Log;
+namespace EventLogger\Service;
 
 use DateTime;
 use ErrorException;
