@@ -8,12 +8,24 @@
 
 namespace BackgroundTasks\Controller;
 
-use Zend\Mvc\Controller\AbstractRestfulController;
+use Abstracts\Model\WDAbstractRestfulController;
+use Zend\Http\Header\ContentType;
+use Zend\Http\Response;
+use Zend\Log\Logger;
+use Zend\Mvc\MvcEvent;
+use Zend\Mvc\ResponseSender\SendResponseEvent;
 use Zend\ServiceManager\ServiceManager;
 use Zend\View\Model\JsonModel;
 
 
-class WorkersController extends AbstractRestfulController{
+class WorkersController extends WDAbstractRestfulController{
+
+//	public function onDispatch(MvcEvent $e){
+//		$this->setLog($this->getServiceLocator()->get('EventLogger\Service\WandiscoLogger'));
+//		print_r($this->getEventManager()->getEvents());exit;
+//		return parent::onDispatch($e);
+//	}
+
 	public function getList()
 	{
 		$this->getServiceLocator()->get('Log')->info('LeadsController::getList()');
@@ -38,9 +50,28 @@ class WorkersController extends AbstractRestfulController{
 	{
 		if(!isset($data['type']) || empty($data['type'])){
 			throw new \Exception('Could not dispatch new worker. Type could not be found, or not given.');
-		} else {
-			return new JsonModel($data);
 		}
+		$workerServiceName = '\BackgroundTasks\Workers\\' . ucfirst($data['type']);
+
+		$this->_log->info('Spinning up new worker of class => ' . $workerServiceName);
+		$workerService = $this->getServiceLocator()->get($workerServiceName);
+		$workerService->init();
+
+		$this->_log->info(get_class($workerService) . ' type worker spun up w/ ID => ' . $workerService->getWorker()->getId());
+
+		$responseData = new JsonModel(array(
+			'success' => TRUE,
+			'worker_id' => $workerService->getWorker()->getId()
+		));
+
+		$response = new Response();
+		$response->setStatusCode(201)
+			->getHeaders()->addHeaders(array(
+				ContentType::fromString('Content-Type: application/json'),
+			));
+
+		$response->setContent($responseData->serialize());
+		return $response;
 	}
 
 	public function update($id, $data)

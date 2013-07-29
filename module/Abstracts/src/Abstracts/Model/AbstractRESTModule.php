@@ -7,14 +7,17 @@ use Zend\Config\Reader\Ini;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Log\Logger;
+use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\ServiceManager\ServiceManager;
+use Zend\Loader;
 
-abstract class AbstractRESTModule extends AbstractBaseModel {
+abstract class AbstractRESTModule extends AbstractBaseModel implements AutoloaderProviderInterface{
 
 	protected
 		$_controllerFilePaths = NULL,
-		$_routes = NULL;
+		$_routes = NULL,
+		$_moduleSrcPath = NULL;
 
 	public function getModuleNamespace(){
 		$classBits = explode('\\', get_class($this));
@@ -30,11 +33,10 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 	}
 
 	public function getAutoLoaderConfig() {
+
 		$config = array(
 			'Zend\Loader\StandardAutoloader' => array(
-				'namespaces' => array(
-					$this->getModuleNamespace() => $this->getModuleRootPath() . '/src/' . $this->getModuleNamespace()
-				)
+				'namespaces' => $this->getSrcNamespaces()
 			)
 		);
 
@@ -43,6 +45,7 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 				$this->getModuleRootPath() . '/autoload_classmap.php'
 			);
 		}
+//		print_r($config);exit;
 
 		return $config;
 	}
@@ -56,6 +59,30 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 		return $invokables;
 	}
 
+	public function getSrcNamespaces(){
+		$namespaces = array($this->getModuleNamespace() => $this->getModuleRootPath() . '/src/' . $this->getModuleNamespace());
+		foreach ($this->getSrcDirs(FALSE) as $srcDir){
+			$index = str_replace($this->getModuleRootPath() . '/src/', '', $srcDir);
+			$namespaces[$index] = $srcDir;
+		}
+		return $namespaces;
+	}
+
+	public function getModuleSrcPath(){
+		return $this->getModuleRootPath() . '/src';
+	}
+
+	public function getSrcDirs($withControllerDir = TRUE){
+		$dirs = array_filter(glob($this->getModuleSrcPath() . '/' . $this->getModuleNamespace() .  '/*'), 'is_dir');
+		if(!$withControllerDir){
+			$controllerDir = $this->getModuleSrcPath() . '/' . $this->getModuleNamespace() .  '/Controller';
+			$dirs = array_filter($dirs, function($v) use ($controllerDir){
+				return ($v != $controllerDir);
+			});
+		}
+		return $dirs;
+	}
+
 	/**
 	 * TODO: This needs to be cleaned up.  Seperate out controller names from file paths.  Doesn't make much sense as-is --Mmarcus
 	 * @return Array of controller names.
@@ -65,12 +92,12 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 		if($this->_controllerFilePaths){
 			return $this->_controllerFilePaths;
 		}
-		$moduleSrcPath = APP_ROOT . '/module/' . $this->getModuleNamespace() . '/src/';
-		$filePaths = glob($moduleSrcPath . $this->getModuleNamespace() . '/Controller/*');
+		$this->setModuleSrcPath(APP_ROOT . '/module/' . $this->getModuleNamespace() . '/src');
+		$filePaths = glob($this->getModuleSrcPath() . '/' . $this->getModuleNamespace() . '/Controller/*');
 		if(!$filePaths || !count($filePaths)){
 			throw new \ErrorException("No controller files found for module.  Cannot build module routes.");
 		}
-		return str_replace('/', '\\', str_replace(array($moduleSrcPath, '.php'), '', $filePaths));
+		return str_replace('/', '\\', str_replace(array($this->getModuleSrcPath(), '.php'), '', $filePaths));
 	}
 
 	public function getRoutes(){
@@ -119,8 +146,8 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 		return strtolower(
 			str_replace(
 				array(
-					ucfirst($this->getModuleNamespace()) . '\Controller\\',
-					'Controller'
+					'\\' . ucfirst($this->getModuleNamespace()) . '\Controller\\',
+					'Controller',
 				),
 				'',
 				$filePath)
@@ -157,6 +184,21 @@ abstract class AbstractRESTModule extends AbstractBaseModel {
 			$additionalModuleConfig = new Config($reader->fromFile($this->getModuleRootPath() . '/config/module.config.ini'));
 			$config = $config->merge($additionalModuleConfig);
 		}
+//		print_r($config->toArray());exit;
 		return $config;
+	}
+
+	public function getControllerConfig(){
+		return array(
+			'initializers' => array(
+				function ($instance, ServiceManager $sm) {
+					if ($instance instanceof LogAwareInterface) {
+						$services   = $sm->getServiceLocator();
+						$log = $services->get('EventLogger\Service\WandiscoLogger');
+						$instance->setLog($log);
+					}
+				}
+			)
+		);
 	}
 }

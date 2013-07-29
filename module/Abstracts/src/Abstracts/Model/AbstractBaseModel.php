@@ -2,9 +2,13 @@
 
 namespace Abstracts\Model;
 
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorAwareTrait;
 use Zend\Stdlib\Exception\BadMethodCallException;
 
-abstract class AbstractBaseModel {
+abstract class AbstractBaseModel implements ServiceLocatorAwareInterface{
+	use ServiceLocatorAwareTrait;
+
 	public function __call($called, $args){
 		if(strpos($called, 'get') === 0 || strpos($called, 'set') === 0){
 			$context = substr($called, 0, 3);

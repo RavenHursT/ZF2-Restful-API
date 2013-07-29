@@ -42,14 +42,15 @@ class ErrorHandlingService
 		if($ex instanceof \Exception){
 			$this->logException($ex);
 			$ret['exceptionTrace'] = array();
-			do{
+			while ($ex instanceof \Exception){
 				$ret['exceptionTrace'][] = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode(),
 					'file' => $ex->getFile(),
 					'line' => $ex->getLine(),
 				);
-			} while($ex = $ex->getPrevious() instanceof \Exception);
+				$ex = $ex->getPrevious();
+			}
 		}
 		$jsonModel = new JsonModel($ret);
 		$e->setResult($jsonModel);

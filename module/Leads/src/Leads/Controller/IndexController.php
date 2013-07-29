@@ -36,7 +36,8 @@ class IndexController extends AbstractRestfulController{
 
 	public function create($data)
 	{
-//		die('create($data)');
+		print_r($data);
+		die('create($data)');
 	}
 
 	public function update($id, $data)

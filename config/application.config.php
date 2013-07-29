@@ -67,23 +67,23 @@ return array(
    // Should be compatible with Zend\ServiceManager\Config.
    // 'service_manager' => array(),
 
-	'di' => array(
-		'instance' => array(
-			'mwGearman\Client\Pecl' => array(
-				'parameters' => array(
-					'servers' => array(
-						array('localhost'),
-					),
-				),
-			),
-			'mwGearman\Worker\Pecl' => array(
-				'parameters' => array(
-					'servers' => array(
-						array('localhost'),
-					),
-				),
-			),
-		),
-	),
+//	'di' => array(
+//		'instance' => array(
+//			'mwGearman\Client\Pecl' => array(
+//				'parameters' => array(
+//					'servers' => array(
+//						array('localhost'),
+//					),
+//				),
+//			),
+//			'mwGearman\Worker\Pecl' => array(
+//				'parameters' => array(
+//					'servers' => array(
+//						array('localhost'),
+//					),
+//				),
+//			),
+//		),
+//	),
 
 );
