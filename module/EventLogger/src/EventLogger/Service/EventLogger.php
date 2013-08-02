@@ -20,7 +20,7 @@ use Zend\Log\Exception;
 /**
  * Logging messages with a stack of backends
  */
-class WandiscoLogger extends Logger
+class EventLogger extends Logger
 {
 
     /**

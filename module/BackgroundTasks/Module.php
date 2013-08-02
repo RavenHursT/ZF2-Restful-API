@@ -24,7 +24,7 @@ class Module extends AbstractRESTModule {
 		$e->getApplication()->getEventManager()->attach(MvcEvent::EVENT_FINISH, function($e){
 			$log = $e->getApplication()
 				->getServiceManager()
-				->get('EventLogger\Service\WandiscoLogger');
+				->get('EventLogger\Service\EventLogger');
 
 			print_r($e->getResponse());exit;
 		}, -10000); //Spool up worker working loop as the LAST thing we do --mmarcus

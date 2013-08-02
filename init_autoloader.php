@@ -44,9 +44,6 @@ if ($zf2Path) {
 
 Zend\Loader\AutoloaderFactory::factory(array(
 	'Zend\Loader\StandardAutoloader' => array(
-		'namespaces' => array(
-			'Wandisco' => LIB_DIR . '/Wandisco',
-		),
 		'fallback_autoloader' => true,
 	)
 ));

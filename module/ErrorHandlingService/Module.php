@@ -1,6 +1,6 @@
 <?php
 
-namespace EventLogger;
+namespace ErrorHandlingService;
 
 use EventLogger\Service\EventLogger;
 use ErrorHandlingService\Service\ErrorHandlingService;
@@ -36,7 +36,7 @@ class Module implements AutoloaderProviderInterface{
 
 				$jsonModel = $e->getApplication()
 					->getServiceManager()
-					->get('ErrorHandlingService\Service\ErrorHandlingService')
+					->get('ErrorHandlingService\Service\ErrorHandling')
 					->logEventError($e)
 					->setJsonResult($e);
 
@@ -76,22 +76,11 @@ class Module implements AutoloaderProviderInterface{
 	public function getServiceConfig(){
 		return array(
 			'factories' => array(
-				'EventLogger\Service\EventLogger' => function ($sm) {
-					$config = $sm->get('Config');
-					if(isset($config['log_file_dir'])){
-						$logFileDir = $config['log_file_dir'];
-					} else {
-						$logFileDir = '/tmp';
-					}
-					$log = new EventLogger();
-					$writer = new Stream($logFileDir . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
-					$writer->setFormatter(new Simple('%timestamp% %priorityName% (%priority%) [f=%requestFingerprint%] [%class%::%function%]: %message% %extra%', 'c'));
-					$log->addWriter($writer);
-//					Logger::registerErrorHandler($log);
-//					Logger::registerExceptionHandler($log);
-
-					return $log;
-				},
+				'ErrorHandlingService\Service\ErrorHandling' =>  function($sm) {
+					$logger = $sm->get('EventLogger\Service\EventLogger');
+					$service = new ErrorHandlingService($logger);
+					return $service;
+				}
 			),
 		);
 	}

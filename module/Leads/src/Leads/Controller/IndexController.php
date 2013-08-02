@@ -16,7 +16,7 @@ use Zend\View\Model\JsonModel;
 class IndexController extends AbstractRestfulController{
 	public function getList()
 	{
-		$this->getServiceLocator()->get('EventLogger\Service\WandiscoLogger')->info('LeadsController::getList()');
+		$this->getServiceLocator()->get('EventLogger\Service\EventLogger')->info('LeadsController::getList()');
 		// If you want to see your current config (i.e. routes, invokables, etc.), uncomment the following:
 //		print_r($this->getServiceLocator()->get('Config'));exit;
 //		die('getList()');

@@ -21,7 +21,7 @@ use Zend\View\Model\JsonModel;
 class WorkersController extends WDAbstractRestfulController{
 
 //	public function onDispatch(MvcEvent $e){
-//		$this->setLog($this->getServiceLocator()->get('EventLogger\Service\WandiscoLogger'));
+//		$this->setLog($this->getServiceLocator()->get('EventLogger\Service\EventLogger'));
 //		print_r($this->getEventManager()->getEvents());exit;
 //		return parent::onDispatch($e);
 //	}

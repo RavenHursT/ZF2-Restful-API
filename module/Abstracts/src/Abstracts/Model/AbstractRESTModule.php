@@ -194,7 +194,7 @@ abstract class AbstractRESTModule extends AbstractBaseModel implements Autoloade
 				function ($instance, ServiceManager $sm) {
 					if ($instance instanceof LogAwareInterface) {
 						$services   = $sm->getServiceLocator();
-						$log = $services->get('EventLogger\Service\WandiscoLogger');
+						$log = $services->get('EventLogger\Service\EventLogger');
 						$instance->setLog($log);
 					}
 				}

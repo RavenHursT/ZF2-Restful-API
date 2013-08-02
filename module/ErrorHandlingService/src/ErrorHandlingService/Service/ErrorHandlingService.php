@@ -6,9 +6,10 @@
  * Time: 5:13 PM
  */
 
-namespace Wandisco\Service;
+namespace ErrorHandlingService\Service;
 
 
+use Zend\Log\Logger;
 use Zend\Mvc\MvcEvent;
 use Zend\View\Model\JsonModel;
 
@@ -16,7 +17,7 @@ class ErrorHandlingService
 {
 	protected $logger;
 
-	public function __construct($logger)
+	public function __construct(Logger $logger)
 	{
 		$this->logger = $logger;
 	}
