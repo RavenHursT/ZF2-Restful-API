@@ -12,6 +12,7 @@ use Zend\Log\Formatter\Simple;
 use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
+use Zend\Mvc\Exception\RuntimeException;
 use Zend\Mvc\MvcEvent;
 use Zend\Mvc\ResponseSender\SendResponseEvent;
 
@@ -83,6 +84,13 @@ class Module implements AutoloaderProviderInterface{
 					} else {
 						$logFileDir = '/tmp';
 					}
+
+                    if(!file_exists($logFileDir)){
+                        if(!mkdir($logFileDir, 0755, TRUE)){
+                            throw new RuntimeException("Couldn't create log directory.  Please check application config and path permissions.");
+                        }
+                    }
+
 					$log = new EventLogger();
 					$writer = new Stream($logFileDir . '/' . $config['application_domain']. '-' . date('Ymd') . '.log');
 					$writer->setFormatter(new Simple('%timestamp% %priorityName% (%priority%) [f=%requestFingerprint%] [%class%::%function%]: %message% %extra%', 'c'));
